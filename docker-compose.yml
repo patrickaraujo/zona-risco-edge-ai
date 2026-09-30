@@ -1,0 +1,34 @@
+services:
+  zona-risco:
+    image: ${IMAGE_NAME:-zona-risco-edge-ai}:${IMAGE_TAG:-1.0.0}
+    build:
+      context: .
+      # Para gerar as duas arquiteturas use scripts/build_multiarch.sh
+      # (o compose constrói só a arquitetura da máquina local).
+    container_name: zona-risco
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_PATH: /app/models/${MODEL_FILE:-yolo11n.onnx}   # yolo11n_320.onnx | yolo11n_int8.onnx
+      CONF_THRESHOLD: "0.35"
+      IOU_THRESHOLD: "0.45"
+      NUM_THREADS: "4"
+      EVENTS_LOG_PATH: /app/data/events.jsonl
+    volumes:
+      - ./config:/app/config          # zonas editáveis sem rebuild
+      - zona-risco-data:/app/data     # histórico de eventos persistente
+    # Limites equivalentes à Raspberry Pi 5 (4 núcleos, 4–8 GB RAM)
+    deploy:
+      resources:
+        limits:
+          cpus: "4"
+          memory: 2g
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  zona-risco-data:
