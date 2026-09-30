@@ -43,11 +43,11 @@ flowchart LR
 
 **Regra de risco.** A posição de cada pessoa é o **centro da base da caixa delimitadora** (aproximadamente os pés). Com a câmera no alto, os polígonos são desenhados sobre o piso, então o ponto de apoio representa melhor a posição real da pessoa no chão. Usar o centro da caixa geraria falsos positivos quando o tronco "invade" visualmente a zona sem que a pessoa pise nela. Quando a pessoa está em mais de uma zona, prevalece a mais crítica (vermelha > amarela).
 
-| Nível | Condição | Ação sugerida (`action`) |
-|---|---|---|
-| `seguro` | Pés fora de qualquer zona | — |
-| `atencao` | Pés na zona amarela (entorno) | `alerta_visual_sonoro` (sinaleiro/sirene) |
-| `perigo` | Pés na zona vermelha (área da máquina) | `parada_de_emergencia` (relé de parada) |
+| Nível     | Condição                               | Ação sugerida (`action`)                  |
+| --------- | -------------------------------------- | ----------------------------------------- |
+| `seguro`  | Pés fora de qualquer zona              | —                                         |
+| `atencao` | Pés na zona amarela (entorno)          | `alerta_visual_sonoro` (sinaleiro/sirene) |
+| `perigo`  | Pés na zona vermelha (área da máquina) | `parada_de_emergencia` (relé de parada)   |
 
 ---
 
@@ -55,13 +55,13 @@ flowchart LR
 
 **Modelo escolhido: YOLO11n** (Ultralytics), pré-treinado no COCO e exportado para **ONNX**. Não é necessário fine-tuning: "person" é a classe mais representada do COCO, e o problema exige apenas **detectar pessoas**. A inteligência de domínio (zonas e criticidade) fica na lógica geométrica, que é configurável e auditável.
 
-| Critério | YOLO11n | SSD MobileNetV2 | EfficientDet-Lite0 |
-|---|---|---|---|
-| mAP COCO (50–95) | ~39,5 | ~22 | ~26 |
-| Parâmetros | 2,6 M | ~4,3 M | ~3,2 M |
-| Custo (640²) | ~6,5 GFLOPs | menor | similar |
-| Exportação ONNX/INT8/NCNN | nativa | via TF | via TFLite |
-| Pessoas pequenas/distantes (câmera a 3–5 m) | boa | fraca | razoável |
+| Critério                                    | YOLO11n     | SSD MobileNetV2 | EfficientDet-Lite0 |
+| ------------------------------------------- | ----------- | --------------- | ------------------ |
+| mAP COCO (50–95)                            | ~39,5       | ~22             | ~26                |
+| Parâmetros                                  | 2,6 M       | ~4,3 M          | ~3,2 M             |
+| Custo (640²)                                | ~6,5 GFLOPs | menor           | similar            |
+| Exportação ONNX/INT8/NCNN                   | nativa      | via TF          | via TFLite         |
+| Pessoas pequenas/distantes (câmera a 3–5 m) | boa         | fraca           | razoável           |
 
 **Por que ele atende aos requisitos de latência e precisão deste cenário:**
 
@@ -80,7 +80,7 @@ flowchart LR
 ```bash
 git clone https://github.com/patrickaraujo/zona-risco-edge-ai.git
 cd zona-risco-edge-ai
-docker compose up -d --build        # 1º build: ~5–10 min (exporta o modelo)
+docker compose up -d --build        # 1º build: 5–20 min, conforme a conexão (exporta o modelo)
 docker compose logs -f              # aguarde "Modelo carregado"
 ```
 
@@ -115,13 +115,13 @@ python scripts/stream_client.py --source video.mp4 --show     # janela com PNG a
 
 ## 4. Endpoints e exemplos
 
-| Método | Rota | Descrição |
-|---|---|---|
-| `POST` | `/detect` | **Inferência → JSON** (pessoas, bbox, confiança, risco, zonas, alertas, métricas) |
-| `POST` | `/detect/image` | **Inferência → PNG anotado** (zonas, caixas, rótulos, faixa de status) |
-| `GET` | `/health` | Estado do serviço, modelo carregado, arquitetura (`x86_64`/`aarch64`) |
-| `GET` / `PUT` | `/zones` | Consulta e redefine as zonas em tempo de execução |
-| `GET` | `/events` | Histórico recente de alertas |
+| Método        | Rota            | Descrição                                                                         |
+| ------------- | --------------- | --------------------------------------------------------------------------------- |
+| `POST`        | `/detect`       | **Inferência → JSON** (pessoas, bbox, confiança, risco, zonas, alertas, métricas) |
+| `POST`        | `/detect/image` | **Inferência → PNG anotado** (zonas, caixas, rótulos, faixa de status)            |
+| `GET`         | `/health`       | Estado do serviço, modelo carregado, arquitetura (`x86_64`/`aarch64`)             |
+| `GET` / `PUT` | `/zones`        | Consulta e redefine as zonas em tempo de execução                                 |
+| `GET`         | `/events`       | Histórico recente de alertas                                                      |
 
 ### `POST /detect`
 
@@ -136,43 +136,43 @@ curl -X POST http://localhost:8000/detect -F "file=@samples/bus.jpg"
   "people": [
     {
       "class_name": "person",
-      "confidence": 0.8902,
-      "bbox": {"x1": 670.4, "y1": 380.6, "x2": 809.9, "y2": 879.7},
-      "anchor_point": [740.2, 879.7],
+      "confidence": 0.8493,
+      "bbox": {"x1": 670.6, "y1": 392.6, "x2": 810.0, "y2": 879.6},
+      "anchor_point": [740.3, 879.6],
       "risk": "perigo",
       "zones": ["entorno_prensa", "prensa_hidraulica"]
     },
     {
       "class_name": "person",
-      "confidence": 0.8833,
-      "bbox": {"x1": 221.7, "y1": 407.4, "x2": 343.8, "y2": 856.2},
-      "anchor_point": [282.7, 856.2],
+      "confidence": 0.8328,
+      "bbox": {"x1": 223.1, "y1": 405.6, "x2": 345.2, "y2": 859.7},
+      "anchor_point": [284.2, 859.7],
       "risk": "atencao",
       "zones": ["entorno_prensa"]
     }
   ],
   "alerts": [
-    {"timestamp": "2026-10-01T13:00:00+00:00", "zone": "prensa_hidraulica",
-     "risk": "perigo", "action": "parada_de_emergencia", "people_in_zone": 1, "source": "api"},
-    {"timestamp": "2026-10-01T13:00:00+00:00", "zone": "entorno_prensa",
-     "risk": "atencao", "action": "alerta_visual_sonoro", "people_in_zone": 2, "source": "api"}
+    {"timestamp": "2026-09-30T05:33:13.229286+00:00", "zone": "entorno_prensa",
+     "risk": "atencao", "action": "alerta_visual_sonoro", "people_in_zone": 2, "source": "api"},
+    {"timestamp": "2026-09-30T05:33:13.229318+00:00", "zone": "prensa_hidraulica",
+     "risk": "perigo", "action": "parada_de_emergencia", "people_in_zone": 1, "source": "api"}
   ],
   "metadata": {
     "model": "yolo11n.onnx", "input_size": [640, 640], "image_size": [810, 1080],
-    "preprocess_ms": 7.9, "inference_ms": 147.5, "postprocess_ms": 2.1,
-    "total_ms": 158.0, "timestamp": "2026-10-01T13:00:00+00:00"
+    "preprocess_ms": 4.68, "inference_ms": 37.93, "postprocess_ms": 1.2,
+    "total_ms": 44.76, "timestamp": "2026-09-30T05:33:13.229627+00:00"
   }
 }
 ```
 
-*(Resposta abreviada: são 4 pessoas no total.)*
+*(Resposta abreviada: são 4 pessoas no total. As outras duas estão fora das zonas, uma delas parcialmente cortada na borda esquerda, detectada com confiança 0,40, pouco acima do limiar de 0,35. O `people_in_zone: 2` da zona amarela inclui a pessoa em perigo, porque a zona vermelha fica dentro da amarela.)*
 
 ### `POST /detect/image`
 
 ```bash
 curl -X POST http://localhost:8000/detect/image -F "file=@samples/bus.jpg" \
      -o anotado.png -D -
-# Cabeçalhos úteis: X-Overall-Risk: perigo | X-People-Count: 4 | X-Inference-Ms: 147.5
+# Cabeçalhos úteis: X-Overall-Risk: perigo | X-People-Count: 4 | X-Inference-Ms: 34.58
 ```
 
 **Tratamento de erros:** arquivo vazio → `400`; arquivo que não é imagem → `415`; imagem acima de 10 MB → `413`; modelo não carregado → `503` (a API sobe em modo degradado e o `/health` explica a causa); zonas inválidas → `422`.
@@ -236,39 +236,40 @@ PUSH=1 IMAGE=<usuario>/zona-risco ./scripts/build_multiarch.sh   # publica o man
 ### Benchmark local (CPU, sem GPU)
 
 ```bash
-python scripts/benchmark.py --threads 4 --runs 50 --out docs/benchmark_x86.json
-# ou, dentro do container, limitado a 4 núcleos como a Pi 5:
-docker run --rm --cpus=4 zona-risco-edge-ai:1.0.0 python scripts/benchmark.py --threads 4
+docker run --rm --cpus=4 zona-risco-edge-ai:1.0.0 python scripts/benchmark.py --threads 4 --runs 50
 ```
 
-<!-- Substitua pela saída do benchmark na sua máquina -->
-| Modelo | Tamanho | Entrada | Threads | Inferência p50 | Total p50 | FPS |
-|---|---|---|---|---|---|---|
-| yolo11n.onnx (FP32) | — MB | 640 | 4 | — ms | — ms | — |
-| yolo11n_320.onnx (FP32) | — MB | 320 | 4 | — ms | — ms | — |
-| yolo11n_int8.onnx | — MB | 640 | 4 | — ms | — ms | — |
+| Modelo                            | Tamanho | Entrada | Threads | Inferência p50 | Inferência p95 | Total p50 | FPS   | Pessoas (média) |
+| --------------------------------- | ------- | ------- | ------- | -------------- | -------------- | --------- | ----- | --------------- |
+| yolo11n.onnx (FP32)               | 10,7 MB | 640     | 4       | 31,2 ms        | 38,6 ms        | 35,0 ms   | 28,6  | 3,0             |
+| yolo11n_320.onnx (FP32)           | 10,6 MB | 320     | 4       | 8,4 ms         | 10,5 ms        | 9,6 ms    | 103,9 | 2,5             |
+| yolo11n_int8.onnx (INT8 dinâmico) | 3,0 MB  | 640     | 4       | 32,0 ms        | 42,1 ms        | 34,7 ms   | 28,8  | 3,0             |
 
-*Ambiente: [CPU do notebook], Docker com `--cpus=4`.*
+*Ambiente: Intel Core Ultra 7 155H, Docker Desktop (WSL2) com `--cpus=4`, 50 execuções sobre `samples/bus.jpg` e `samples/zidane.jpg`, após 5 de aquecimento.*
 
-Num teste preliminar com **1 thread** de CPU x86 e um modelo YOLO *nano* equivalente a 640×640, a inferência levou cerca de 140 ms (FP32). A versão INT8 levou cerca de 108 ms e ocupou 3,5 MB em vez de 12,8 MB. Houve uma perda: uma pessoa parcialmente cortada na borda da imagem, com confiança 0,44, deixou de ser detectada. **Esse é o tipo de troca que precisa ser avaliada com imagens do ambiente real.**
+**Leitura dos resultados:**
+
+- **Entrada 320:** é 3,6× mais rápida, mas a média de pessoas detectadas caiu de 3,0 para 2,5. Com menos resolução, pessoas pequenas ou parcialmente fora do quadro deixam de ser detectadas. Num sistema de segurança, uma pessoa não detectada é o pior tipo de erro, então essa troca só é aceitável se a câmera estiver próxima o bastante da zona para que as pessoas ocupem uma área grande da imagem.
+- **INT8 dinâmico:** reduziu o modelo em 3,6× (de 10,7 para 3,0 MB) sem perder detecções nas imagens de teste, mas **não ganhou latência** neste x86. Na quantização dinâmica, as ativações são quantizadas em tempo de execução, e em redes convolucionais esse custo anula o ganho dos pesos em INT8. O próximo passo seria a **quantização estática (QDQ)**, calibrada com cerca de 200 imagens da própria câmera, e medir o resultado também na Pi, onde o comportamento pode ser diferente.
+- **Limite do teste:** o `--cpus=4` limita a cota de CPU, não o tipo de núcleo. Os núcleos do Core Ultra 7 são bem mais rápidos que os Cortex-A76 da Pi 5, então estes números **não** representam o desempenho na placa.
 
 ### Estimativa para a Raspberry Pi 5
 
 - **Referência externa.** A Arm publica um YOLO11n INT8 otimizado (ExecuTorch + XNNPACK) rodando na Pi 5 a **~134 ms p50 (~7,5 FPS)** e mAP 38,9 ([model card](https://huggingface.co/Arm/yolo11n-int8-xnnpack-executorch-raspberrypi5)). A Ultralytics recomenda **NCNN** como o formato mais rápido na Pi ([guia](https://docs.ultralytics.com/guides/raspberry-pi)).
-- **Expectativa para este projeto (ONNX Runtime FP32, 640, 4 threads):** algo na faixa de **3–6 FPS**. Com entrada 320 (~4× menos operações), **10+ FPS**. *Essa estimativa ainda precisa ser validada na placa* (ver seção 8).
+- **Expectativa para este projeto (ONNX Runtime FP32, 640, 4 threads):** algo na faixa de **3–6 FPS**. Com entrada 320 (cerca de 4× menos operações, o que o benchmark acima confirma com 3,6× de ganho), **10+ FPS**. *Essa estimativa ainda precisa ser validada na placa* (ver seção 8), rodando o mesmo comando de benchmark dentro do container ARM64.
 
 ### Orçamento de latência
 
 A ISO 13855 usa **K = 1,6 m/s** como velocidade de aproximação do corpo humano. A distância mínima entre o limite da zona amarela e o perigo é `S = K × T`, onde **T** é o tempo total de resposta:
 
-| Componente | FP32 640 (~4 FPS) | FP32 320 (~10 FPS) |
-|---|---|---|
-| Intervalo entre quadros (pior caso) | 250 ms | 100 ms |
-| Pipeline (pré + inferência + pós) | 250 ms | 100 ms |
-| Confirmação (2 quadros consecutivos) | 250 ms | 100 ms |
-| Acionamento (relé/CLP) | 100 ms | 100 ms |
-| **T total** | **~850 ms** | **~400 ms** |
-| **Faixa amarela mínima (S = 1,6 × T)** | **~1,4 m** | **~0,65 m** |
+| Componente                             | FP32 640 (~4 FPS) | FP32 320 (~10 FPS) |
+| -------------------------------------- | ----------------- | ------------------ |
+| Intervalo entre quadros (pior caso)    | 250 ms            | 100 ms             |
+| Pipeline (pré + inferência + pós)      | 250 ms            | 100 ms             |
+| Confirmação (2 quadros consecutivos)   | 250 ms            | 100 ms             |
+| Acionamento (relé/CLP)                 | 100 ms            | 100 ms             |
+| **T total**                            | **~850 ms**       | **~400 ms**        |
+| **Faixa amarela mínima (S = 1,6 × T)** | **~1,4 m**        | **~0,65 m**        |
 
 **Conclusão.** Para **alerta de aproximação**, 3–5 FPS já é aceitável, desde que a faixa amarela tenha largura proporcional à latência. Para **parada de emergência**, o sistema **complementa e não substitui** os dispositivos de segurança certificados exigidos pela NR-12 e pela ISO 13849 (cortinas de luz, scanners a laser, intertravamentos com nível de desempenho validado). O papel dele é monitorar comportamento, registrar ocorrências e reforçar a sinalização.
 
@@ -278,18 +279,18 @@ A ISO 13855 usa **K = 1,6 m/s** como velocidade de aproximação do corpo humano
 
 A implementação e os testes foram feitos em notebook x86_64. Estas são as diferenças esperadas na placa e como tratá-las:
 
-| Aspecto | Notebook (dev) | Raspberry Pi 5 | Adaptação |
-|---|---|---|---|
-| Arquitetura | x86_64 | ARM64 (Cortex-A76 ×4, 2,4 GHz) | Imagem `linux/arm64` via buildx; apenas wheels com suporte aarch64 |
-| Aceleração | CPU (GPU ignorada) | Sem GPU utilizável para inferência | ONNX Runtime CPU, `NUM_THREADS=4`, 1 worker Uvicorn, inferência serializada |
-| Otimização | FP32 640 | Recursos limitados | Entrada 320 · pesos INT8 · exportação NCNN, ou quantização estática com imagens do local |
-| NPU | — | Opcional: AI Kit / AI HAT+ (Hailo-8L/8) | Compilar o ONNX para `.hef` (Hailo Dataflow Compiler) e mapear `/dev/hailo0` no container |
-| Câmera | Webcam / arquivo | Camera Module 3 (CSI) ou câmera IP | `picamera2`/libcamera ou RTSP; `devices: /dev/video*` no compose |
-| Térmica | — | Throttling por temperatura sob carga contínua | Active Cooler obrigatório; monitorar `vcgencmd measure_temp` e `get_throttled` |
-| Energia | — | Fonte oficial 27 W (5 V/5 A) | Evita subtensão e instabilidade durante picos de inferência |
-| Armazenamento | SSD | microSD sujeito a desgaste | Eventos em volume dedicado ou SSD NVMe/USB; logs com rotação (já configurada) |
-| Resiliência | — | Operação 24/7 sem operador | `restart: always` + `HEALTHCHECK`; resposta 503 enquanto o modelo não estiver pronto |
-| Ambiente físico | — | Vibração, poeira, fumaça | Caixa IP54+, fixação com amortecimento, limpeza periódica da lente |
+| Aspecto         | Notebook (dev)     | Raspberry Pi 5                                | Adaptação                                                                                 |
+| --------------- | ------------------ | --------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| Arquitetura     | x86_64             | ARM64 (Cortex-A76 ×4, 2,4 GHz)                | Imagem `linux/arm64` via buildx; apenas wheels com suporte aarch64                        |
+| Aceleração      | CPU (GPU ignorada) | Sem GPU utilizável para inferência            | ONNX Runtime CPU, `NUM_THREADS=4`, 1 worker Uvicorn, inferência serializada               |
+| Otimização      | FP32 640           | Recursos limitados                            | Entrada 320 · pesos INT8 · exportação NCNN, ou quantização estática com imagens do local  |
+| NPU             | —                  | Opcional: AI Kit / AI HAT+ (Hailo-8L/8)       | Compilar o ONNX para `.hef` (Hailo Dataflow Compiler) e mapear `/dev/hailo0` no container |
+| Câmera          | Webcam / arquivo   | Camera Module 3 (CSI) ou câmera IP            | `picamera2`/libcamera ou RTSP; `devices: /dev/video*` no compose                          |
+| Térmica         | —                  | Throttling por temperatura sob carga contínua | Active Cooler obrigatório; monitorar `vcgencmd measure_temp` e `get_throttled`            |
+| Energia         | —                  | Fonte oficial 27 W (5 V/5 A)                  | Evita subtensão e instabilidade durante picos de inferência                               |
+| Armazenamento   | SSD                | microSD sujeito a desgaste                    | Eventos em volume dedicado ou SSD NVMe/USB; logs com rotação (já configurada)             |
+| Resiliência     | —                  | Operação 24/7 sem operador                    | `restart: always` + `HEALTHCHECK`; resposta 503 enquanto o modelo não estiver pronto      |
+| Ambiente físico | —                  | Vibração, poeira, fumaça                      | Caixa IP54+, fixação com amortecimento, limpeza periódica da lente                        |
 
 ### Como eu validaria na placa
 
