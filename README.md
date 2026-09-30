@@ -1,5 +1,7 @@
 # Monitoramento de Comportamento de Risco em Zonas de Máquinas Pesadas — Edge AI
 
+[![CI](https://github.com/patrickaraujo/zona-risco-edge-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/patrickaraujo/zona-risco-edge-ai/actions/workflows/ci.yml)
+
 Sistema de visão computacional embarcada que detecta pessoas em zonas de exclusão ao redor de máquinas pesadas (prensas, injetoras, robôs), classifica o risco em **seguro / atenção (zona amarela) / perigo (zona vermelha)** e dispara respostas proporcionais. Projetado para rodar na **Raspberry Pi 5 (ARM64, somente CPU)**, sem dependência de inferência em nuvem.
 
 > Projeto 3 da Matriz de Projetos — Edge AI / Visão Computacional · Processo seletivo FIT (PNAAT)
