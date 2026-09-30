@@ -1,0 +1,11 @@
+# Normaliza finais de linha no repositório
+* text=auto
+
+# Arquivos executados dentro de containers Linux precisam de LF
+*.sh text eol=lf
+Dockerfile text eol=lf
+
+# Binários: sem conversão
+*.png binary
+*.jpg binary
+*.onnx binary
