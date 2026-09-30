@@ -1,0 +1,10 @@
+# Desenvolvimento, testes, exportação e benchmark (não entram na imagem final)
+-r requirements.txt
+pytest==9.1.1
+httpx==0.28.1
+requests>=2.32
+# Exportação do modelo (baixa o PyTorch; use o índice CPU para uma instalação leve):
+#   pip install --index-url https://download.pytorch.org/whl/cpu torch torchvision
+ultralytics==8.4.166
+onnx==1.23.1
+onnxslim==0.1.97

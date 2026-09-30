@@ -1,0 +1,9 @@
+# Dependências de EXECUÇÃO (imagem final). Sem PyTorch: a inferência usa ONNX Runtime.
+# Versões fixadas = build reprodutível. Todas possuem wheels para linux/amd64 e linux/arm64.
+fastapi==0.142.0
+uvicorn==0.54.0
+python-multipart==0.0.32
+pydantic==2.13.5
+numpy==2.4.4
+opencv-python-headless==4.13.0.92
+onnxruntime==1.24.4

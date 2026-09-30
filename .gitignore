@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+dist/
+# Modelos são gerados no build (estágio exporter) ou por scripts/export_model.py
+models/*.onnx
+models/*.pt
+*.pt
+data/
